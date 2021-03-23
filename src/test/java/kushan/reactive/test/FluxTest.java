@@ -199,6 +199,21 @@ public class FluxTest {
     }
 
     @Test
+    public void fluxSubscriberPrettyBackPressure(){
+        Flux<Integer> flux = Flux.range(1,10)
+                .log();
+
+        flux.limitRate(3)
+                .subscribe(integer -> log.info("Number is {}",integer));
+
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+
+        StepVerifier.create(flux)
+                .expectNext(1,2,3,4,5,6,7,8,9,10)
+                .verifyComplete();
+    }
+
+    @Test
     public void fluxSubscriberInterval() throws InterruptedException {
         Flux<Long> interval = Flux.interval(Duration.ofMillis(100))
                 .log(); //*as you can see we don't have any thing because this is some thing that going to block your thread
@@ -227,7 +242,7 @@ public class FluxTest {
         StepVerifier.withVirtualTime(this::createInterval)
                 .expectSubscription()
                 .expectNoEvent(Duration.ofDays(1))
-                .thenAwait(Duration.ofDays(1))
+                .thenAwait(Duration.ofDays(1))//wait for a day
                 .expectNext(0L)
                 .thenAwait(Duration.ofDays(1))
                 .expectNext(1L)
