@@ -9,6 +9,8 @@ import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
+
 /*
   Reactive Streams
   1. Asynchronous
@@ -196,6 +198,47 @@ public class FluxTest {
                 .verifyComplete();
     }
 
+    @Test
+    public void fluxSubscriberInterval() throws InterruptedException {
+        Flux<Long> interval = Flux.interval(Duration.ofMillis(100))
+                .log(); //*as you can see we don't have any thing because this is some thing that going to block your thread
+
+        //so the guys from reactor they are smart and they decided to have this interval running on a background thread
+        interval.subscribe(i -> log.info("Number is {} : ",i));//stating from 0 and print while thread is alive
+
+        //to fix this *, we sleep the main thread for some time
+        //after doing this we can see every 100 milliseconds you get things published until the main thread dies
+        Thread.sleep(3000);
+    }
+
+    @Test
+    public void fluxSubscriberIntervalWithTake() throws InterruptedException {
+        Flux<Long> interval = Flux.interval(Duration.ofMillis(100))
+                .take(10) // Now we can see the onComplete() triggered after printing 10 elements
+                .log();
+
+        interval.subscribe(i -> log.info("Number is {} : ",i));
+
+        Thread.sleep(3000);
+    }
+
+    @Test
+    public void fluxSubscriberIntervalTest() {
+        StepVerifier.withVirtualTime(this::createInterval)
+                .expectSubscription()
+                .expectNoEvent(Duration.ofDays(1))
+                .thenAwait(Duration.ofDays(1))
+                .expectNext(0L)
+                .thenAwait(Duration.ofDays(1))
+                .expectNext(1L)
+                .thenCancel()
+                .verify();
+    }
+
+    private Flux<Long> createInterval() {
+        return Flux.interval(Duration.ofDays(1))
+                .log();
+    }
 
 
 }
