@@ -6,6 +6,7 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.BaseSubscriber;
+import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -253,6 +254,83 @@ public class FluxTest {
     private Flux<Long> createInterval() {
         return Flux.interval(Duration.ofDays(1))
                 .log();
+    }
+
+
+
+    @Test //HOT flux
+    public void connectableFlux() throws InterruptedException {
+        //This is how we can have hot observables so it will execute at the moment you are connecting even if you not have any subscribers.
+
+        ConnectableFlux<Integer> connectableFlux = Flux.range(1,10)
+                .log()
+                .delayElements(Duration.ofMillis(100))
+                .publish();
+
+        connectableFlux.connect(); //Now subscriber doesn't need to exists for this to get events immediately
+
+        //see how its works by main thread sleeping
+
+//        log.info("Thread Sleeping for 100ms");
+//
+//        Thread.sleep(100);
+//
+//        connectableFlux.subscribe(i -> log.info("Sub 1 number : {}",i));
+//
+//        log.info("Thread Sleeping for 200ms");
+//
+//        Thread.sleep(200);
+//
+//        connectableFlux.subscribe(i -> log.info("Sub 2 number : {}",i));
+//
+//        log.info("Thread Sleeping for 300ms");
+//
+//        Thread.sleep(300);
+//
+//        connectableFlux.subscribe(i -> log.info("Sub 3 number : {}",i));
+//
+//        log.info("Thread Sleeping for 300ms");
+//
+//        Thread.sleep(300);
+//
+//        connectableFlux.subscribe(i -> log.info("Sub 4 number : {}",i));
+
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+
+//        StepVerifier.create(connectableFlux)
+//                .then(connectableFlux::connect)
+//                .expectNext(1,2,3,4,5,6,7,8,9,10)
+//                .verifyComplete();
+
+        StepVerifier.create(connectableFlux)
+                .then(connectableFlux::connect)
+                .thenConsumeWhile(i -> i <= 5) //this means we are going to lose 1,2,3,4,5 values
+                .expectNext(6,7,8,9,10)
+                .verifyComplete();
+    }
+
+    @Test //HOT flux
+    public void connectableFluxAutoConnect() {
+        Flux<Integer> connectableFlux = Flux.range(1,10)
+                .log()
+                .delayElements(Duration.ofMillis(100))
+                .publish()
+                .autoConnect(2);
+
+    //    connectableFlux.subscribe(integer -> log.info("Number is {}",integer));
+
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+
+//        StepVerifier.create(connectableFlux)
+//                .then(connectableFlux::connect)
+//                .expectNext(1,2,3,4,5,6,7,8,9,10)
+//                .verifyComplete();
+
+        StepVerifier.create(connectableFlux)
+                .then(connectableFlux::subscribe) //when we execute without (connectableFlux::subscribe), this will hang on forever because this is expecting the 2nd subscriber
+                .thenConsumeWhile(i -> i <= 5) //this means we are going to lose 1,2,3,4,5 values
+                .expectNext(6,7,8,9,10)
+                .verifyComplete();
     }
 
 
