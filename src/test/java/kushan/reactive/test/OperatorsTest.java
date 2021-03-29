@@ -10,7 +10,6 @@ import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -211,6 +210,7 @@ public class OperatorsTest {
                 .log();
 
         //Use case Ex: You are executing some thing to save in the DB if the search return empty flux, use switchIfEmpty and save this object
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
         StepVerifier.create(flux)
                 .expectSubscription()
                 .expectNext("not empty any more")
@@ -242,9 +242,61 @@ public class OperatorsTest {
         deffer.subscribe(l -> log.info("time {}", l));
         Thread.sleep(100);
 
+        log.info("-------------------test the code---------------------------");
+
         AtomicLong atomicLong = new AtomicLong();
         deffer.subscribe(atomicLong::set);
         Assertions.assertTrue(atomicLong.get()>0);
+
+    }
+
+    @Test
+    public void concatOperator(){
+        Flux<String> flux1 = Flux.just("a","b");
+        Flux<String> flux2 = Flux.just("c","d");
+
+        Flux<String> concatFlux = Flux.concat(flux1,flux2).log();
+
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+        StepVerifier.create(concatFlux)
+                .expectSubscription()
+                .expectNext("a","b","c","d")
+                .expectComplete()
+                .verify();
+
+    }
+
+    @Test
+    public void concatWithOperator(){
+        Flux<String> flux1 = Flux.just("a","b");
+        Flux<String> flux2 = Flux.just("c","d");
+
+        Flux<String> concatFlux = flux1.concatWith(flux2).log();
+
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+        StepVerifier.create(concatFlux)
+                .expectSubscription()
+                .expectNext("a","b","c","d")
+                .expectComplete()
+                .verify();
+
+    }
+
+    @Test
+    public void combineLatestOperator(){
+        Flux<String> flux1 = Flux.just("a","b");
+        Flux<String> flux2 = Flux.just("c","d");
+
+        Flux<String> combineLatest = Flux.combineLatest(flux1,flux2,
+                (s1,s2) -> s1.toUpperCase()+"-"+s2.toUpperCase())
+                .log();
+
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+        StepVerifier.create(combineLatest)
+                .expectSubscription()
+                .expectNext("B-C","B-D")
+                .expectComplete()
+                .verify();
 
     }
 
