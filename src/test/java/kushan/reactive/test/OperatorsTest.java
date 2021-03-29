@@ -11,6 +11,7 @@ import reactor.test.StepVerifier;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -295,6 +296,52 @@ public class OperatorsTest {
         StepVerifier.create(combineLatest)
                 .expectSubscription()
                 .expectNext("B-C","B-D")
+                .expectComplete()
+                .verify();
+
+    }
+
+    @Test
+    public void mergeOperator() throws InterruptedException {
+        Flux<String> flux1 = Flux.just("a","b").delayElements(Duration.ofMillis(200));
+        Flux<String> flux2 = Flux.just("c","d");
+        //The Flux is going to subscribe eagerly. it means that not wait until first one finishes
+        // And second that takes run in different threads
+
+        Flux<String> mergeFlux = Flux.merge(flux1,flux2)
+                .delayElements(Duration.ofMillis(200))
+                .log();
+
+     //   mergeFlux.subscribe(log::info);
+
+   //     Thread.sleep(1000);
+
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+        StepVerifier.create(mergeFlux)
+                .expectSubscription()
+                .expectNext("c","d","a","b")
+                .expectComplete()
+                .verify();
+
+    }
+
+    //The merge will work in a way to similar to the concat
+    //difference of merge and concat :
+    //concat is the lazy provider. it means it will wait until the first publisher finishes and then it will start to the second one
+
+    @Test
+    public void mergeWithOperator() {
+        Flux<String> flux1 = Flux.just("a","b").delayElements(Duration.ofMillis(200));
+        Flux<String> flux2 = Flux.just("c","d");
+
+        Flux<String> mergeFlux = flux1.mergeWith(flux2)
+                .delayElements(Duration.ofMillis(200))
+                .log();
+
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+        StepVerifier.create(mergeFlux)
+                .expectSubscription()
+                .expectNext("c","d","a","b")
                 .expectComplete()
                 .verify();
 
