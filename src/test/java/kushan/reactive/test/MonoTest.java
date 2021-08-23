@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.Objects;
+
 /*
   Reactive Streams
   1. Asynchronous
@@ -51,6 +53,21 @@ public class MonoTest {
         StepVerifier.create(mono)
                 .expectNext(name)
                 .verifyComplete();
+    }
+
+    @Test
+    public void monoBlockTest(){
+        String name = "123";
+        long val = Mono.just(name)
+                .map(e -> getQval(e) == null ? 0L : Long.parseLong(e))
+                .blockOptional().orElse(50L);
+
+        System.out.println("val is : " + val);
+
+    }
+
+    public String getQval(String val){
+        return null;
     }
 
     @Test
@@ -150,11 +167,11 @@ public class MonoTest {
                 () -> log.info("FINISHED"),
                 subscription -> subscription.request(5));
 
-        log.info("-------------------test the code using reactor-test step verifier---------------------------");
-
-        StepVerifier.create(mono)
-                .expectNext(name.toUpperCase())
-                .verifyComplete();
+//        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+//
+//        StepVerifier.create(mono)
+//                .expectNext(name.toUpperCase())
+//                .verifyComplete();
     }
 
     @Test
@@ -176,11 +193,11 @@ public class MonoTest {
                 () -> log.info("FINISHED"),
                 subscription -> subscription.request(5));
 
-        log.info("-------------------test the code using reactor-test step verifier---------------------------");
-
-        StepVerifier.create(mono)
-                .expectNext(name.toUpperCase())
-                .verifyComplete();
+//        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+//
+//        StepVerifier.create(mono)
+//                .expectNext(name.toUpperCase())
+//                .verifyComplete();
     }
 
     @Test

@@ -272,13 +272,14 @@ public class OperatorsTest {
         Flux<String> flux2 = Flux.just("c","d");
 
         Flux<String> concatFlux = flux1.concatWith(flux2).log();
+        concatFlux.subscribe(s -> System.out.println("-------"+s));
 
         log.info("-------------------test the code using reactor-test step verifier---------------------------");
-        StepVerifier.create(concatFlux)
-                .expectSubscription()
-                .expectNext("a","b","c","d")
-                .expectComplete()
-                .verify();
+//        StepVerifier.create(concatFlux)
+//                .expectSubscription()
+//                .expectNext("a","b","c","d")
+//                .expectComplete()
+//                .verify();
     }
 
     @Test
