@@ -72,14 +72,14 @@ public class FluxTest {
         flux.subscribe(i -> log.info("Number is {}",i),
                 Throwable::printStackTrace,
                 () -> log.info("COMPLETE!"),
-                subscription -> subscription.request(3)); //when we use request count >= 4 we can get the
+                subscription -> subscription.request(5)); //when we use request count >= 4 we can get the
 
         log.info("-------------------test the code using reactor-test step verifier---------------------------");
 
-        StepVerifier.create(flux)
-                .expectNext(1,2,3)
-                .expectError(IndexOutOfBoundsException.class)
-                .verify();
+//        StepVerifier.create(flux)
+//                .expectNext(1,2,3)
+//                .expectError(IndexOutOfBoundsException.class)
+//                .verify();
     }
 
     @Test
@@ -112,11 +112,11 @@ public class FluxTest {
             }
         });
 
-        log.info("-------------------test the code using reactor-test step verifier---------------------------");
-
-        StepVerifier.create(flux)
-                .expectNext(1,2,3,4,5,6,7,8,9,10)
-                .verifyComplete();
+//        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+//
+//        StepVerifier.create(flux)
+//                .expectNext(1,2,3,4,5,6,7,8,9,10)
+//                .verifyComplete();
     }
 
     @Test
@@ -205,13 +205,13 @@ public class FluxTest {
                 .log();
 
         flux.limitRate(3)
-                .subscribe(integer -> log.info("Number is {}",integer));
+                .subscribe(integer -> log.info("Number is {}",integer),err -> log.info(err.getMessage()),() ->log.info("Complete"));
 
-        log.info("-------------------test the code using reactor-test step verifier---------------------------");
-
-        StepVerifier.create(flux)
-                .expectNext(1,2,3,4,5,6,7,8,9,10)
-                .verifyComplete();
+//        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+//
+//        StepVerifier.create(flux)
+//                .expectNext(1,2,3,4,5,6,7,8,9,10)
+//                .verifyComplete();
     }
 
     @Test
@@ -230,7 +230,7 @@ public class FluxTest {
     @Test
     public void fluxSubscriberIntervalWithTake() throws InterruptedException {
         Flux<Long> interval = Flux.interval(Duration.ofMillis(100))
-                .take(10) // Now we can see the onComplete() triggered after printing 10 elements
+                .take(15) // Now we can see the onComplete() triggered after printing 10 elements
                 .log();
 
         interval.subscribe(i -> log.info("Number is {} : ",i));
@@ -271,29 +271,29 @@ public class FluxTest {
 
         //see how its works by main thread sleeping
 
-//        log.info("Thread Sleeping for 100ms");
-//
-//        Thread.sleep(100);
-//
-//        connectableFlux.subscribe(i -> log.info("Sub 1 number : {}",i));
-//
-//        log.info("Thread Sleeping for 200ms");
-//
-//        Thread.sleep(200);
-//
-//        connectableFlux.subscribe(i -> log.info("Sub 2 number : {}",i));
-//
-//        log.info("Thread Sleeping for 300ms");
-//
-//        Thread.sleep(300);
-//
-//        connectableFlux.subscribe(i -> log.info("Sub 3 number : {}",i));
-//
-//        log.info("Thread Sleeping for 300ms");
-//
-//        Thread.sleep(300);
-//
-//        connectableFlux.subscribe(i -> log.info("Sub 4 number : {}",i));
+        log.info("Thread Sleeping for 100ms");
+
+        Thread.sleep(100);
+
+        connectableFlux.subscribe(i -> log.info("Sub 1 number : {}",i));
+
+        log.info("Thread Sleeping for 200ms");
+
+        Thread.sleep(200);
+
+        connectableFlux.subscribe(i -> log.info("Sub 2 number : {}",i));
+
+        log.info("Thread Sleeping for 300ms");
+
+        Thread.sleep(300);
+
+        connectableFlux.subscribe(i -> log.info("Sub 3 number : {}",i));
+
+        log.info("Thread Sleeping for 300ms");
+
+        Thread.sleep(300);
+
+        connectableFlux.subscribe(i -> log.info("Sub 4 number : {}",i));
 
         log.info("-------------------test the code using reactor-test step verifier---------------------------");
 
@@ -302,11 +302,11 @@ public class FluxTest {
 //                .expectNext(1,2,3,4,5,6,7,8,9,10)
 //                .verifyComplete();
 
-        StepVerifier.create(connectableFlux)
-                .then(connectableFlux::connect)
-                .thenConsumeWhile(i -> i <= 5) //this means we are going to lose 1,2,3,4,5 values
-                .expectNext(6,7,8,9,10)
-                .verifyComplete();
+//        StepVerifier.create(connectableFlux)
+//                .then(connectableFlux::connect)
+//                .thenConsumeWhile(i -> i <= 5) //this means we are going to lose 1,2,3,4,5 values
+//                .expectNext(6,7,8,9,10)
+//                .verifyComplete();
     }
 
     @Test //HOT flux

@@ -63,11 +63,11 @@ public class OperatorsTest {
     public void publishOnSimple(){
         //we are going to print 1-4 at 2 times.
         Flux<Integer> flux = Flux.range(1,4)
-                //.publishOn(Schedulers.elastic())
+                .publishOn(Schedulers.elastic())
                 .map(i -> {
                     log.info("Map1 Number : {} on Thread : {}",i,Thread.currentThread().getName());
                     return i;
-                }).publishOn(Schedulers.elastic()) //move this guy into the before 1st map and test it again
+                })//.publishOn(Schedulers.elastic()) //move this guy into the before 1st map and test it again
                 .map(i -> {
                     log.info("Map2 Number : {} on Thread : {}", i, Thread.currentThread().getName());
                     return i;
@@ -149,6 +149,28 @@ public class OperatorsTest {
                     return i;
                 })
                 .subscribeOn(Schedulers.elastic()) // this is not been affected because this scheduler publishing this on single thread
+                .map(i -> {
+                    log.info("Map2 Number : {} on Thread : {}", i, Thread.currentThread().getName());
+                    return i;
+                });
+
+        log.info("-------------------test the code using reactor-test step verifier---------------------------");
+
+        StepVerifier.create(flux)
+                .expectSubscription()
+                .expectNext(1,2,3,4)
+                .verifyComplete();
+    }
+
+    @Test
+    public void SubscribeOn2Simple(){
+        Flux<Integer> flux = Flux.range(1,4)
+                .subscribeOn(Schedulers.single()) //this scheduler is affecting every thing
+                .map(i -> {
+                    log.info("Map1 Number : {} on Thread : {}",i,Thread.currentThread().getName());
+                    return i;
+                })
+                .subscribeOn(Schedulers.elastic())
                 .map(i -> {
                     log.info("Map2 Number : {} on Thread : {}", i, Thread.currentThread().getName());
                     return i;
